@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Markdown Viewer</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.4.0/mermaid.min.js"></script>
   <style>
     :root {
       --primary-color: #3b82f6;
@@ -191,6 +192,11 @@
     #markdown-display img {
       max-width: 100%;
     }
+    
+    #markdown-display .mermaid {
+      margin: 1.5em 0;
+      overflow-x: auto;
+    }
 
     #markdown-display table {
       border-collapse: collapse;
@@ -278,13 +284,27 @@
     const header = document.querySelector('header');
     const footer = document.querySelector('footer');
 
-    // Configure marked options
+    // Configure marked options and add mermaid support
     marked.setOptions({
       breaks: true,       // Add line breaks on single line breaks 
       gfm: true,          // Use GitHub Flavored Markdown
       headerIds: true,    // Include ids in headers
       mangle: false,      // Don't escape HTML in the source
       sanitize: false,    // Allow HTML in the source
+      highlight: function(code, language) {
+        if (language === 'mermaid') {
+          return `<div class="mermaid">${code}</div>`;
+        }
+        return code;
+      }
+    });
+    
+    // Initialize mermaid
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      securityLevel: 'loose',
+      fontFamily: 'monospace'
     });
 
     // Process markdown file
@@ -297,6 +317,9 @@
         // Render markdown to HTML
         const html = marked.parse(markdownText);
         markdownDisplay.innerHTML = html;
+        
+        // Initialize any mermaid diagrams in the content
+        mermaid.init(undefined, document.querySelectorAll('.mermaid'));
         
         // Show the markdown content and hide the drop zone
         dropZoneContainer.style.display = 'none';
