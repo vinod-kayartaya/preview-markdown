@@ -1,420 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Markdown Viewer</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.4.0/mermaid.min.js"></script>
-  <style>
-    :root {
-      --primary-color: #3b82f6;
-      --bg-color: #f8fafc;
-      --card-bg: #ffffff;
-      --text-color: #334155;
-      --border-color: #e2e8f0;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Markdown Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.4.0/mermaid.min.js"></script>
+    <link rel="stylesheet" href="site.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Markdown Viewer</h1>
+      <p>Drop a Markdown file to see it rendered</p>
+    </header>
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    <div class="drop-zone-container" id="drop-zone-container">
+      <div class="drop-zone" id="drop-zone">
+        <div class="drop-zone-icon">📄</div>
+        <h2 class="drop-zone-text">Drop your Markdown file here</h2>
+        <p class="drop-zone-subtext">or click to browse</p>
+        <button id="upload-btn">Select File</button>
+        <input
+          type="file"
+          id="file-input"
+          class="file-input"
+          accept=".md, .markdown, .txt"
+        />
+      </div>
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      line-height: 1.5;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    header {
-      text-align: center;
-      padding: 1rem;
-    }
-
-    h1 {
-      color: var(--primary-color);
-      margin-bottom: 0.5rem;
-    }
-
-    .drop-zone-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      flex: 1;
-      padding: 2rem;
-    }
-
-    .drop-zone {
-      width: 100%;
-      max-width: 500px;
-      height: 300px;
-      border: 3px dashed var(--border-color);
-      border-radius: 1rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 2rem;
-      transition: all 0.3s ease;
-      background-color: var(--card-bg);
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    .drop-zone.drag-over {
-      border-color: var(--primary-color);
-      background-color: rgba(59, 130, 246, 0.05);
-    }
-
-    .drop-zone-icon {
-      font-size: 4rem;
-      margin-bottom: 1rem;
-      color: var(--primary-color);
-    }
-
-    .drop-zone-text {
-      font-size: 1.25rem;
-      margin-bottom: 1rem;
-    }
-
-    .drop-zone-subtext {
-      font-size: 0.875rem;
-      color: #64748b;
-      margin-bottom: 1.5rem;
-    }
-
-    button {
-      padding: 0.5rem 1rem;
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: 0.25rem;
-      cursor: pointer;
-      font-weight: 600;
-      transition: background-color 0.2s;
-    }
-
-    button:hover {
-      background-color: #2563eb;
-    }
-
-    .file-input {
-      display: none;
-    }
-
-    .markdown-content {
-      flex: 1;
-      overflow: auto;
-      display: none;
-      padding: 0;
-      width: 100%;
-      height: 100vh;
-    }
-
-    .markdown-content.active {
-      display: block;
-    }
-
-    #markdown-display {
-      padding: 2rem;
-      min-height: 100vh;
-      overflow: auto;
-    }
-
-    #markdown-display h1, 
-    #markdown-display h2, 
-    #markdown-display h3, 
-    #markdown-display h4, 
-    #markdown-display h5, 
-    #markdown-display h6 {
-      margin-top: 1em;
-      margin-bottom: 0.5em;
-      font-weight: 600;
-      line-height: 1.25;
-    }
-
-    #markdown-display h1 {
-      font-size: 2em;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 0.3em;
-    }
-
-    #markdown-display h2 {
-      font-size: 1.5em;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 0.3em;
-    }
-
-    #markdown-display p {
-      margin-bottom: 1em;
-    }
-
-    #markdown-display ul, 
-    #markdown-display ol {
-      margin-bottom: 1em;
-      padding-left: 2em;
-    }
-
-    #markdown-display blockquote {
-      padding: 0 1em;
-      border-left: 0.25em solid var(--border-color);
-      color: #6b7280;
-    }
-
-    #markdown-display code {
-      padding: 0.2em 0.4em;
-      background-color: rgba(175, 184, 193, 0.2);
-      border-radius: 0.25em;
-      font-family: monospace;
-    }
-
-    #markdown-display pre code {
-      display: block;
-      padding: 1em;
-      overflow: auto;
-    }
-
-    #markdown-display a {
-      color: var(--primary-color);
-      text-decoration: none;
-    }
-
-    #markdown-display a:hover {
-      text-decoration: underline;
-    }
-
-    #markdown-display img {
-      max-width: 100%;
-    }
-    
-    #markdown-display .mermaid {
-      margin: 1.5em 0;
-      overflow-x: auto;
-    }
-
-    #markdown-display table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-bottom: 1em;
-    }
-
-    #markdown-display table th, 
-    #markdown-display table td {
-      border: 1px solid var(--border-color);
-      padding: 0.5em;
-    }
-
-    #markdown-display table th {
-      background-color: rgba(0, 0, 0, 0.05);
-    }
-
-    .back-button {
-      position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 3rem;
-      height: 3rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      z-index: 10;
-    }
-
-    .back-button:hover {
-      background-color: #2563eb;
-    }
-
-    footer {
-      text-align: center;
-      padding: 1rem;
-      font-size: 0.875rem;
-      color: #64748b;
-    }
-
-    .hidden {
-      display: none;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Markdown Viewer</h1>
-    <p>Drop a Markdown file to see it rendered</p>
-  </header>
-
-  <div class="drop-zone-container" id="drop-zone-container">
-    <div class="drop-zone" id="drop-zone">
-      <div class="drop-zone-icon">📄</div>
-      <h2 class="drop-zone-text">Drop your Markdown file here</h2>
-      <p class="drop-zone-subtext">or click to browse</p>
-      <button id="upload-btn">Select File</button>
-      <input type="file" id="file-input" class="file-input" accept=".md, .markdown, .txt">
+      <div class="recent-files">
+        <h2>Recently Viewed Files</h2>
+        <ul class="recent-files-list" id="recentFilesList"></ul>
+      </div>
     </div>
-  </div>
 
-  <div class="markdown-content" id="markdown-content">
-    <div id="markdown-display"></div>
-    <button class="back-button" id="back-button" title="Back to upload">⬅</button>
-  </div>
+    <div class="markdown-content" id="markdown-content">
+      <div id="markdown-display"></div>
+    </div>
 
-  <footer>
-    <p>This is a client-side Markdown viewer. Your content never leaves your browser.</p>
-  </footer>
+    <button class="back-button" id="back-button" title="Home">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="white"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+    </button>
 
-  <script>
-    const dropZoneContainer = document.getElementById('drop-zone-container');
-    const dropZone = document.getElementById('drop-zone');
-    const fileInput = document.getElementById('file-input');
-    const uploadBtn = document.getElementById('upload-btn');
-    const markdownContent = document.getElementById('markdown-content');
-    const markdownDisplay = document.getElementById('markdown-display');
-    const backButton = document.getElementById('back-button');
-    const header = document.querySelector('header');
-    const footer = document.querySelector('footer');
+    <footer>
+      <p>
+        This is a client-side Markdown viewer. Your content never leaves your
+        browser.
+      </p>
+    </footer>
 
-    // Configure marked options and add mermaid support
-    marked.setOptions({
-      breaks: true,       // Add line breaks on single line breaks 
-      gfm: true,          // Use GitHub Flavored Markdown
-      headerIds: true,    // Include ids in headers
-      mangle: false,      // Don't escape HTML in the source
-      sanitize: false,    // Allow HTML in the source
-      highlight: function(code, language) {
-        if (language === 'mermaid') {
-          return `<div class="mermaid">${code}</div>`;
-        }
-        return code;
-      }
-    });
-    
-    // Initialize mermaid
-    mermaid.initialize({
-      startOnLoad: true,
-      theme: 'default',
-      securityLevel: 'loose',
-      fontFamily: 'monospace'
-    });
-
-    // Process markdown file
-    function processFile(file) {
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const markdownText = e.target.result;
-        // Render markdown to HTML
-        const html = marked.parse(markdownText);
-        markdownDisplay.innerHTML = html;
-        
-        // Initialize any mermaid diagrams in the content
-        mermaid.init(undefined, document.querySelectorAll('.mermaid'));
-        
-        // Show the markdown content and hide the drop zone
-        dropZoneContainer.style.display = 'none';
-        markdownContent.classList.add('active');
-        
-        // Hide header and footer for distraction-free view
-        header.style.display = 'none';
-        footer.style.display = 'none';
-        
-        // Set document title to the first h1 if available
-        const firstH1 = markdownDisplay.querySelector('h1');
-        if (firstH1) {
-          document.title = `${firstH1.textContent}`;
-        } else {
-          document.title = `${file.name}`;
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    // Event listeners
-    uploadBtn.addEventListener('click', () => {
-      fileInput.click();
-    });
-
-    fileInput.addEventListener('change', (event) => {
-      const file = event.target.files[0];
-      processFile(file);
-    });
-
-    // Go back to drop zone
-    backButton.addEventListener('click', () => {
-      dropZoneContainer.style.display = 'flex';
-      markdownContent.classList.remove('active');
-      document.title = 'Markdown Viewer';
-      
-      // Show header and footer again
-      header.style.display = 'block';
-      footer.style.display = 'block';
-    });
-
-    // Handle drag and drop events
-    dropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dropZone.classList.add('drag-over');
-    });
-    
-    dropZone.addEventListener('dragleave', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dropZone.classList.remove('drag-over');
-    });
-    
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dropZone.classList.remove('drag-over');
-      
-      const file = e.dataTransfer.files[0];
-      processFile(file);
-    });
-
-    // Handle drops anywhere on the document when in drop zone mode
-    document.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Only add the drag-over class if the drop zone is visible
-      if (dropZoneContainer.style.display !== 'none') {
-        dropZone.classList.add('drag-over');
-      }
-    });
-    
-    document.addEventListener('dragleave', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Check if the element being left is the document itself
-      if (e.currentTarget === document && dropZoneContainer.style.display !== 'none') {
-        dropZone.classList.remove('drag-over');
-      }
-    });
-    
-    document.addEventListener('drop', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Only process the drop if the drop zone is visible
-      if (dropZoneContainer.style.display !== 'none') {
-        dropZone.classList.remove('drag-over');
-        const file = e.dataTransfer.files[0];
-        processFile(file);
-      }
-    });
-  </script>
-</body>
+    <script src="scripts/main.js"></script>
+  </body>
 </html>
